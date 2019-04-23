@@ -2,7 +2,7 @@ This is the project repo for the final project of the Udacity Self-Driving Car N
 
 ### Team Members
 1. Oyewale Oyediran (waleoyediran@gmail.com)
-
+2. Surjith Bhagavath Singh(surjithbs17@gmail.com)
 
 Please use **one** of the two installation options, either native **or** docker installation.
 
