@@ -78,7 +78,7 @@ class TLDetector(object):
 
         """
         self.count += 1
-        if self.count % 5 != 0:
+        if self.count % 3 != 0:
             return
 
         self.has_image = True
