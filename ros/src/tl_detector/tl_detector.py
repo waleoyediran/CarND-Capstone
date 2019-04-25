@@ -24,6 +24,10 @@ class TLDetector(object):
         self.waypoint_tree = None
         self.camera_image = None
         self.lights = []
+        self.has_image = False
+
+        self.latest_light_wp = None
+        self.latest_state = None
 
         self.count = 0
 
@@ -54,7 +58,16 @@ class TLDetector(object):
         self.last_wp = -1
         self.state_count = 0
 
-        rospy.spin()
+        self.loop()
+
+    def loop(self):
+        rate = rospy.Rate(10)
+
+        while not rospy.is_shutdown():
+            if self.latest_light_wp and self.latest_state:
+                self.publish_lights(self.latest_light_wp, self.latest_state)
+
+            rate.sleep()
 
     def pose_cb(self, msg):
         self.pose = msg
@@ -81,18 +94,21 @@ class TLDetector(object):
         if self.count % 5 != 0:
             return
 
+        rospy.loginfo('Image count [{}]'.format(self.count))
+
         self.has_image = True
         self.camera_image = msg
-        light_wp, state = self.process_traffic_lights()
+        self.latest_light_wp, self.latest_state = self.process_traffic_lights()
 
-        rospy.logwarn("Closest light wp: {0}\nLight state: {1}".format(light_wp, state))
+        rospy.logwarn("Closest light wp: {0}\nLight state: {1}".format(self.latest_light_wp, self.latest_state))
 
-        '''
+    def publish_lights(self, light_wp, state):
+        """
         Publish upcoming red lights at camera frequency.
         Each predicted state has to occur `STATE_COUNT_THRESHOLD` number
         of times till we start using it. Otherwise the previous stable state is
         used.
-        '''
+        """
         if self.state != state:
             self.state_count = 0
             self.state = state
@@ -127,14 +143,14 @@ class TLDetector(object):
             int: ID of traffic light color (specified in styx_msgs/TrafficLight)
 
         """
-        #return light.state
+        # return light.state
 
         if(not self.has_image):
              self.prev_light_loc = None
              return False
-        
+
         cv_image = self.bridge.imgmsg_to_cv2(self.camera_image, "bgr8")
-        
+
         #Get classification
         return self.light_classifier.get_classification(cv_image)
 
